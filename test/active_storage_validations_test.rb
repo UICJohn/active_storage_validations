@@ -91,6 +91,27 @@ class ActiveStorageValidations::Test < ActiveSupport::TestCase
     assert_equal ['Files total number is out of range'], la.errors.full_messages
   end
 
+  test 'validates batch uploads for limit validation' do
+    la = LimitAttachment.create(name: 'klingon')
+    files = (0..5).map do
+      pdf_file
+    end
+
+    la.files.attach(files)
+    assert !la.valid?
+    assert_equal 0, la.files_blobs.count
+    assert_equal ['Files total number is out of range'], la.errors.full_messages
+
+    another_la = LimitAttachment.create(name: 'another')
+
+    files = (0..2).map do
+      pdf_file
+    end
+    another_la.files.attach(files)
+    assert another_la.valid?
+    assert_equal 3, another_la.files_blobs.count
+  end
+
   test 'dimensions and is image' do
     e = OnlyImage.new
     e.image.attach(html_file)
